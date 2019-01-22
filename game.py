@@ -33,6 +33,10 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
     image_kalman = pygame.image.load(os.path.join('images', 'car_yellow_xm.png'))
     image_measured = pygame.image.load(os.path.join('images', 'car_red_xm.png'))
 
+    image_green = pygame.image.load(os.path.join('images', 'green.png'))
+    image_red = pygame.image.load(os.path.join('images', 'red.png'))
+    image_yellow = pygame.image.load(os.path.join('images', 'yellow.png'))
+
 
 
     clock = pygame.time.Clock()
@@ -53,9 +57,19 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
         measured_text = largeFont.render('Measured error: ' + str("{0:.2f}".format(measured_error)) + ' m', 1, (255, 255, 255))
         kalman_text = largeFont.render('Kalman filter error: ' + str("{0:.2f}".format(kalman_error)) + ' m', 1, (255, 255, 255))
         velocity_text = largeFont.render('Estimated velocity: ' + str("{0:.2f}".format(estimated_velocity)) + ' m/s', 1, (255, 255, 255))
+        green_text = largeFont.render('Real position', 1, (255, 255, 255))
+        red_text = largeFont.render('Measured position', 1, (255, 255, 255))
+        yellow_text = largeFont.render('Kalman filtered position', 1, (255, 255, 255))
         win.blit(measured_text, (0, 10))
         win.blit(kalman_text, (0, 50))
         win.blit(velocity_text, (0, 100))
+
+        win.blit(image_green, (900, 10))
+        win.blit(image_yellow, (900, 50))
+        win.blit(image_red, (900, 90))
+        win.blit(green_text, (945, 18))
+        win.blit(yellow_text, (945, 58))
+        win.blit(red_text, (945, 98))
         pygame.display.update()
 
 
@@ -77,7 +91,8 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 run = False
-
-
         clock.tick(100)
-        redrawWindow(kalman_errors[i + 1], measured_errors[i + 1],  velocity[i + 1])
+        # if i > 50:
+        #     redrawWindow(kalman_errors[i + 1], np.average(np.absolute(measured_errors[i-49:i+1])),  velocity[i + 1])
+        # else:
+        redrawWindow(kalman_errors[i + 1], measured_errors[i + 1], velocity[i + 1])
