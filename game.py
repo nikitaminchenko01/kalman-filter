@@ -1,0 +1,83 @@
+import pygame
+from pygame.locals import *
+import os
+import sys
+import math
+import random
+import numpy as np
+
+
+def run(kalman_errors, measured_errors, velocity, kalman_velocity):
+    W, H = 1200, 437
+    imW = 150
+    win = pygame.display.set_mode((W, H))
+    pygame.display.set_caption('Kalman Filter Visualisation')
+
+    bg = pygame.image.load(os.path.join('images', 'bg.png')).convert()
+    bgX = 0
+    bgX2 = bg.get_width()
+
+    class player(object):
+
+        def __init__(self, x, y, image):
+            self.x = x
+            self.y = y
+            self.image = image
+
+        def draw(self, win):
+            win.blit(self.image, (self.x, self.y))
+
+    pygame.init()
+
+    image_real = pygame.image.load(os.path.join('images', 'car_green_xm.png'))
+    image_kalman = pygame.image.load(os.path.join('images', 'car_yellow_xm.png'))
+    image_measured = pygame.image.load(os.path.join('images', 'car_red_xm.png'))
+
+
+
+    clock = pygame.time.Clock()
+    run = True
+    real = player(W / 2 - imW / 2, 325, image_real)
+    measured = player(real.x + measured_errors[0], real.y, image_measured)
+    kalman = player(real.x + kalman_errors[0], real.y, image_kalman)
+
+
+
+    def redrawWindow(kalman_error, measured_error, estimated_velocity):
+        largeFont = pygame.font.SysFont('comicsans', 30)
+        win.blit(bg, (bgX, 0))
+        win.blit(bg, (bgX2, 0))
+        real.draw(win)
+        measured.draw(win)
+        kalman.draw(win)
+        measured_text = largeFont.render('Measured error: ' + str("{0:.2f}".format(measured_error)) + ' m', 1, (255, 255, 255))
+        kalman_text = largeFont.render('Kalman filter error: ' + str("{0:.2f}".format(kalman_error)) + ' m', 1, (255, 255, 255))
+        velocity_text = largeFont.render('Estimated velocity: ' + str("{0:.2f}".format(estimated_velocity)) + ' m/s', 1, (255, 255, 255))
+        win.blit(measured_text, (0, 10))
+        win.blit(kalman_text, (0, 50))
+        win.blit(velocity_text, (0, 100))
+        pygame.display.update()
+
+
+    used_kalman_errors = kalman_errors * 30
+    used_measured_errors = measured_errors * 30
+    used_velocities = velocity
+    for i in range(len(kalman_errors) - 1):
+        bgX -= used_velocities[i + 1]
+        bgX2 -= used_velocities[i + 1]
+        measured.x = real.x + used_measured_errors[i + 1]
+        kalman.x = real.x + used_kalman_errors[i + 1]
+
+        if bgX < bg.get_width() * -1:
+            bgX = bg.get_width()
+        if bgX2 < bg.get_width() * -1:
+            bgX2 = bg.get_width()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                run = False
+
+
+        clock.tick(100)
+        redrawWindow(kalman_errors[i + 1], measured_errors[i + 1],  velocity[i + 1])
