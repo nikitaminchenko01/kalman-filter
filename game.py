@@ -32,6 +32,8 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
     image_real = pygame.image.load(os.path.join('images', 'car_green_xm.png'))
     image_kalman = pygame.image.load(os.path.join('images', 'car_yellow_xm.png'))
     image_measured = pygame.image.load(os.path.join('images', 'car_red_xm.png'))
+    image_green_outline = pygame.image.load(os.path.join('images', 'car_green_transparent_xm.png'))
+
 
     image_green = pygame.image.load(os.path.join('images', 'green.png'))
     image_red = pygame.image.load(os.path.join('images', 'red.png'))
@@ -44,6 +46,7 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
     real = player(W / 2 - imW / 2, 325, image_real)
     measured = player(real.x + measured_errors[0], real.y, image_measured)
     kalman = player(real.x + kalman_errors[0], real.y, image_kalman)
+    outline = player(real.x, real.y - 50, image_green_outline)
 
 
 
@@ -54,12 +57,13 @@ def run(kalman_errors, measured_errors, velocity, kalman_velocity):
         real.draw(win)
         measured.draw(win)
         kalman.draw(win)
-        measured_text = largeFont.render('Measured error: ' + str("{0:.2f}".format(measured_error)) + ' m', 1, (255, 255, 255))
-        kalman_text = largeFont.render('Kalman filter error: ' + str("{0:.2f}".format(kalman_error)) + ' m', 1, (255, 255, 255))
-        velocity_text = largeFont.render('Estimated velocity: ' + str("{0:.2f}".format(estimated_velocity)) + ' m/s', 1, (255, 255, 255))
-        green_text = largeFont.render('Real position', 1, (255, 255, 255))
-        red_text = largeFont.render('Measured position', 1, (255, 255, 255))
-        yellow_text = largeFont.render('Kalman filtered position', 1, (255, 255, 255))
+        outline.draw(win)
+        measured_text = largeFont.render('Measured error: ' + str("{0:.2f}".format(measured_error)) + ' m', 1, (0, 0, 0))
+        kalman_text = largeFont.render('Kalman filter error: ' + str("{0:.2f}".format(kalman_error)) + ' m', 1, (0, 0, 0))
+        velocity_text = largeFont.render('Estimated velocity: ' + str("{0:.2f}".format(estimated_velocity)) + ' m/s', 1, (0, 0, 0))
+        green_text = largeFont.render('Real position', 1, (0, 0, 0))
+        red_text = largeFont.render('Measured position', 1, (0, 0, 0))
+        yellow_text = largeFont.render('Kalman filtered position', 1, (0, 0, 0))
         win.blit(measured_text, (0, 10))
         win.blit(kalman_text, (0, 50))
         win.blit(velocity_text, (0, 100))

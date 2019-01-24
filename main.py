@@ -2,32 +2,6 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from game import run
-from scipy.optimize import minimize
-from functools import reduce
-import threading
-
-def plot_n_vars(values, times):
-    for name, value in values:
-        plt.plot(times, value, label=name)
-    plt.xlabel('t')
-    plt.ylabel('stan')
-    plt.legend()
-    plt.show()
-
-
-def plot_n_vars_subplots(values, times):
-    n = len(values)
-    cols = 1
-    rows = int(math.ceil(n / cols))
-    f, axes = plt.subplots(rows, cols)
-    print(axes)
-    for i in range(n):
-        name, value = values[i]
-        axes[i].plot(times, value)
-        axes[i].set_xlabel('t')
-        axes[i].set_ylabel(name)
-    plt.show()
-
 
 
 def num_iters(T, h):
@@ -65,8 +39,6 @@ def simulate(velocity_list, T, kp, ki, kd):
     kalman_history[0] = xhat
     measurement_history = np.zeros(iters)
     for i in range(iters - 1):
-        # u = 3 * np.sin(timestep * i) + 2
-        # print(u)
         error = v_zadane - xhat[1]
         errorSum += (error * timestep)
         u = kp * error + ki * errorSum
@@ -98,54 +70,93 @@ def simulate(velocity_list, T, kp, ki, kd):
     return state_history, measurement_history, np.arange(0, T, timestep), kalman_history, errors, u_val
 
 
-def to_minimize(x):
-    kp, ki, kd = x[0], x[1], x[2]
-    _, _, _, _, _, e = simulate(kp, ki, kd)
-    return reduce(lambda acc, err: acc + err**2, e, 0)
-
 if __name__ == '__main__':
+    # errors_test = np.zeros((1000, 10000))
+    # errors_test_kalman = np.zeros((1000, 10000))
+    # for i in range(1000):
+    #     print(i)
+    #     history, measurement_history, times, kalman, _, _ = simulate([10, 20, 30, 10], 100, 1, 0.1, 0)
+    #     errors = measurement_history - np.squeeze(history[:, 0, :])
+    #     error_after = np.squeeze(kalman[:, 0, :]) - np.squeeze(history[:, 0, :])
+    #     errors_test[i] = errors
+    #     errors_test_kalman[i] = error_after
+    #
+    # errors_avg = np.average(np.abs(errors_test))
+    # errors_kalman_avg = np.average(np.abs(errors_test_kalman))
+    #
+    # errors_std_dev = np.std(errors_test)
+    # errors_kalman_std_dev = np.std(errors_test_kalman)
+    #
+    # print("AVG ERROR:")
+    # print(errors_avg)
+    #
+    # print("AVG ERROR KALMAN:")
+    # print(errors_kalman_avg)
+    #
+    # print("STD DEV ERROR:")
+    # print(errors_std_dev)
+    #
+    # print("STD DEV ERROR KALMAN:")
+    # print(errors_kalman_std_dev)
+
+
     history, measurement_history, times, kalman, _, _ = simulate([10, 20, 30, 10], 100, 1, 0.1, 0)
     errors = measurement_history - np.squeeze(history[:, 0, :])
     error_after = np.squeeze(kalman[:, 0, :]) - np.squeeze(history[:, 0, :])
 
-    cols = 1
-    rows = 3
-    f, axes = plt.subplots(rows, cols)
 
-    name, value = ['p', history[:, 0, :]]
-    axes[0].plot(times, value, label=name)
-    name, value = ['measured_p', measurement_history]
-    axes[0].plot(times, value, label=name)
-    name, value = ['kalman_p', kalman[:, 0, :]]
-    axes[0].plot(times, value, label=name)
-
-    name, value = ['v', history[:, 1, :]]
-    axes[1].plot(times, value, label=name)
-    name, value = ['kalman_v', kalman[:, 1, :]]
-    axes[1].plot(times, value, label=name)
-
-    name, value = ['errors', errors]
-    axes[2].plot(times, value, label=name)
-
-    name, value = ['errors_kalman', error_after]
-    axes[2].plot(times, value, label=name)
-
-    axes[0].set_xlabel('t')
-    axes[0].set_ylabel('stan')
-    axes[0].legend()
-
-    axes[1].set_xlabel('t')
-    axes[1].set_ylabel('predkosc')
-    axes[1].legend()
-
-    axes[2].set_xlabel('t')
-    axes[2].set_ylabel('error')
-    axes[2].legend()
-
-    plt.ion()
+    plt.plot(times, history[:, 0, :], label='Faktyczne położenie')
+    plt.plot(times, measurement_history, label='Zmierzone położenie')
+    plt.plot(times, kalman[:, 0, :], label='Odfiltrowane położenie')
+    plt.xlabel('czas (s)')
+    plt.ylabel('położenie (m)')
+    plt.legend()
+    plt.title('Położenie')
+    plt.savefig('positions.png')
+    plt.clf()
+    plt.plot(times[200:400], history[200:400, 0, :], label='Faktyczne położenie')
+    plt.plot(times[200:400], measurement_history[200:400], label='Zmierzone położenie')
+    plt.plot(times[200:400], kalman[200:400, 0, :], label='Odfiltrowane położenie')
+    plt.legend()
+    plt.xlabel('czas (s)')
+    plt.ylabel('położenie (m)')
+    plt.title('Położenie 2s-4s')
+    plt.savefig('positions24.png')
     plt.show()
-    plt.draw()
-    plt.pause(0.001)
+
+    plt.plot(times, history[:, 1, :], label='Faktyczna szybkość')
+    plt.plot(times, kalman[:, 1, :], label='Estymowana szybkosć')
+    plt.xlabel('czas (s)')
+    plt.ylabel('szybkość (m/s)')
+    plt.legend()
+    plt.title('Szybkość')
+    plt.savefig('speed.png')
+    plt.clf()
+    plt.plot(times[200:400], history[200:400, 1, :], label='Faktyczna szybkość')
+    plt.plot(times[200:400], kalman[200:400, 1, :], label='Estymowana szybkość')
+    plt.legend()
+    plt.xlabel('czas (s)')
+    plt.ylabel('szybkość (m/s)')
+    plt.title('Szybkość 2s-4s')
+    plt.savefig('speed24.png')
+    plt.show()
+
+    plt.plot(times, errors, label='Błąd odczytu położenia')
+    plt.plot(times, error_after, label='Błąd estymacji położenia filtrem Kalmana')
+    plt.xlabel('czas (s)')
+    plt.ylabel('błąd (m)')
+    plt.legend()
+    plt.title('Przebieg błędu')
+    plt.savefig('error.png')
+    plt.clf()
+    plt.plot(times[200:400], errors[200:400], label='Błąd odczytu położenia')
+    plt.plot(times[200:400], error_after[200:400], label='Błąd estymacji położenia filtrem Kalmana')
+    plt.legend()
+    plt.xlabel('czas (s)')
+    plt.ylabel('błąd (m)')
+    plt.title('Przebieg błędu pomiędzy 2 a 4 sekundą ruchu')
+    plt.savefig('error24.png')
+
     kalman_errors = error_after
     measured_errors = errors
     velocities = np.squeeze(history[:, 1, :])
