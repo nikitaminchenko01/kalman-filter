@@ -1,6 +1,7 @@
 import pygame
 import os
 import numpy as np
+import time
 
 class PygameImage(object):
     __images_path = "images"
@@ -146,6 +147,7 @@ class KalmanFilterVisualizer(Visualizer):
                     run = False
             self.clock.tick(self.clock_tick)
             self.redraw_window()
+            time.sleep(0.1)
 
     def update_backgrounds_position(self, offset):
         self.background.x -= offset
