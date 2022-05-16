@@ -5,59 +5,44 @@ from visualizer import KalmanFilterVisualizer
 
 
 def save_plots(real_position, measured_position, kalman_position, real_speed, kalman_speed, measured_error,
-               kalman_error, times):
-    plt.plot(times, real_position, label='Faktyczne położenie')
-    plt.plot(times, measured_position, label='Zmierzone położenie')
-    plt.plot(times, kalman_position, label='Estymowane położenie')
-    plt.xlabel('czas (s)')
-    plt.ylabel('położenie (m)')
-    plt.legend()
-    plt.title('Położenie')
-    plt.savefig('positions.png')
-    plt.clf()
-    plt.plot(times[200:400], real_position[200:400], label='Faktyczne położenie')
-    plt.plot(times[200:400], measured_position[200:400], label='Zmierzone położenie')
-    plt.plot(times[200:400], kalman_position[200:400], label='Estymowane położenie')
-    plt.legend()
-    plt.xlabel('czas (s)')
-    plt.ylabel('położenie (m)')
-    plt.title('Położenie pomiędzy 2 a 4 sekundą ruchu')
-    plt.savefig('positions24.png')
-    plt.clf()
+               kalman_error, timesteps):
+    fig = plt.figure(figsize=(10, 10))
+    ax1 = fig.add_subplot(221)
+    times = np.cumsum(timesteps)
+    ax1.plot(times, real_position, label='Истинная координата')
+    ax1.plot(times, measured_position, label='Измеренная координата')
+    ax1.plot(times, kalman_position, label='Оцененная координата')
+    ax1.set_xlabel('время')
+    ax1.set_ylabel('координата')
+    ax1.legend()
+    ax1.set_title('График положения')
 
-    plt.plot(times, real_speed, label='Faktyczna prędkość')
-    plt.plot(times, kalman_speed, label='Estymowana prędkość')
-    plt.xlabel('czas (s)')
-    plt.ylabel('prędkość (m/s)')
-    plt.legend()
-    plt.title('Prędkość')
-    plt.savefig('speed.png')
-    plt.clf()
-    plt.plot(times[200:400], real_speed[200:400], label='Faktyczna prędkość')
-    plt.plot(times[200:400], kalman_speed[200:400], label='Estymowana prędkość')
-    plt.legend()
-    plt.xlabel('czas (s)')
-    plt.ylabel('szybkość (m/s)')
-    plt.title('Szybkość 2s-4s')
-    plt.savefig('speed24.png')
-    plt.clf()
+    ax2 = fig.add_subplot(222)
+    ax2.plot(times, real_speed, label='Фактическая скорость')
+    ax2.plot(times, kalman_speed, label='Оцененная скорость')
+    ax2.set_xlabel('время')
+    ax2.set_ylabel('скорость (м/с)')
+    ax2.legend()
+    ax2.set_title('Скорость')
 
-    plt.plot(times, measured_error, label='Błąd odczytu położenia')
-    plt.plot(times, kalman_error, label='Błąd estymacji położenia filtrem Kalmana')
-    plt.xlabel('czas (s)')
-    plt.ylabel('błąd (m)')
-    plt.legend()
-    plt.title('Przebieg błędu')
-    plt.savefig('error.png')
-    plt.clf()
-    plt.plot(times[200:400], measured_error[200:400], label='Błąd odczytu położenia')
-    plt.plot(times[200:400], kalman_error[200:400], label='Błąd estymacji położenia filtrem Kalmana')
-    plt.legend()
-    plt.xlabel('czas (s)')
-    plt.ylabel('błąd (m)')
-    plt.title('Przebieg błędu pomiędzy 2 a 4 sekundą ruchu')
-    plt.savefig('error24.png')
-    plt.clf()
+    ax3 = fig.add_subplot(223)
+    ax3.plot(times, measured_error, label='Ошибка измерения координаты')
+    ax3.plot(times, kalman_error, label='Ошибка оценки координаты фильтром Калмана')
+    ax3.set_xlabel('время')
+    ax3.set_ylabel('ошибка')
+    ax3.legend()
+    ax3.set_title('Ошибка координаты')
+    fig.show()
+
+    ax4 = fig.add_subplot(224)
+    ax4.plot(np.arange(0, 10, 0.01), timesteps, label='Временной шаг')
+    #ax4.plot(times, kalman_error, label='Ошибка оценки координаты фильтром Калмана')
+    ax4.set_xlabel('номер измерения')
+    ax4.set_ylabel('временной шаг')
+    ax4.legend()
+    ax4.set_title('Временной шаг')
+    fig.show()
+
 
 
 def num_iters(T, h):
@@ -70,7 +55,11 @@ def simulate(velocity_list, T, kp, ki, kd):
     iter_change = round(iters / len(velocity_list))
     last_velocity_index = 0
 
-    u_max = 4
+    def timestep_dynamic(i):
+        return 0.01 + 0.01 * np.sin(0.01 * i)
+
+    times = [timestep]
+    u_max = 3
     accelnoise = 0.06
     x0 = np.array([[0], [0]])
     A = np.array([[1, timestep], [0, 1]])
@@ -78,7 +67,8 @@ def simulate(velocity_list, T, kp, ki, kd):
     C = np.array([[1, 0]])
     measnoise = 3
 
-    v_zadane = velocity_list[last_velocity_index]
+    v_known = velocity_list[last_velocity_index]
+
 
     Sz = measnoise ** 2
     Sw = accelnoise ** 2 * np.array([[timestep ** 4 / 4, timestep ** 3 / 2], [timestep ** 3 / 2, timestep ** 2]])
@@ -95,7 +85,14 @@ def simulate(velocity_list, T, kp, ki, kd):
     kalman_history[0] = xhat
     measurement_history = np.zeros(iters)
     for i in range(iters - 1):
-        error = v_zadane - xhat[1]
+        error = v_known - xhat[1]
+        timestep = timestep_dynamic(i)
+        times.append(timestep)
+        A = np.array([[1, timestep], [0, 1]])
+        B = np.array([[1 / 2 * (timestep ** 2)], [timestep]])
+        C = np.array([[1, 0]])
+        Sw = accelnoise ** 2 * np.array([[timestep ** 4 / 4, timestep ** 3 / 2], [timestep ** 3 / 2, timestep ** 2]])
+        #P = Sw
         errorSum += (error * timestep)
         u = kp * error + ki * errorSum
         if(u > u_max):
@@ -105,13 +102,12 @@ def simulate(velocity_list, T, kp, ki, kd):
 
         if i % iter_change == 0 and i != 0 :
             last_velocity_index += 1
-            v_zadane = velocity_list[last_velocity_index]
+            v_known = velocity_list[last_velocity_index]
 
         process_noise = accelnoise * np.array([[1/2 * (timestep**2) * np.random.normal()], [timestep * np.random.normal()]])
         x = A@(state_history[i]) + B*u + process_noise
         measure_noise = np.random.normal() * measnoise
         y = C @ x + measure_noise
-
         xhat = A @ xhat + B * u
         inn = y - C @ xhat
         s = C @ P @ C.T + Sz
@@ -121,8 +117,8 @@ def simulate(velocity_list, T, kp, ki, kd):
         kalman_history[i+1] = xhat
         state_history[i+1] = x
         measurement_history[i+1] = y
-
-    return state_history, measurement_history, np.arange(0, T, timestep), kalman_history, errors, u_val
+    #timestep = 0.01
+    return state_history, measurement_history, times, kalman_history, errors, u_val # np.arange(0, T, timestep)
 
 
 def test_statistically():
@@ -147,7 +143,7 @@ def test_statistically():
 if __name__ == '__main__':
     # test_statistically()
 
-    history, measurement_history, times, kalman, _, _ = simulate([10, 20, 30, 10], 100, 1, 0.1, 0)
+    history, measurement_history, times, kalman, _, _ = simulate([10, 20, 30, 10], 10, 1, 0.1, 0)
     errors = measurement_history - np.squeeze(history[:, 0, :])
     error_after = np.squeeze(kalman[:, 0, :]) - np.squeeze(history[:, 0, :])
 

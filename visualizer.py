@@ -56,7 +56,7 @@ class Visualizer:
 
 
 class KalmanFilterVisualizer(Visualizer):
-    __DEF_WINDOW_WIDTH = 1200
+    __DEF_WINDOW_WIDTH = 950
     __DEF_WINDOW_HEIGHT = 437
     __DEF_IMAGE_WIDTH = 150
     __DEF_CAR_Y_POSITION = 325
@@ -128,9 +128,9 @@ class KalmanFilterVisualizer(Visualizer):
         self.kalman_filtered_position_text = "Kalman filtered position"
 
     def init_dots(self):
-        self.real_dot = VisualizationObject(900, 10, PygameImage('green.png'))
-        self.kalman_dot = VisualizationObject(900, 50, PygameImage('yellow.png'))
-        self.measured_dot = VisualizationObject(900, 90, PygameImage('red.png'))
+        self.real_dot = VisualizationObject(620, 10, PygameImage('green.png'))
+        self.kalman_dot = VisualizationObject(620, 50, PygameImage('yellow.png'))
+        self.measured_dot = VisualizationObject(620, 90, PygameImage('red.png'))
         self.visualization_objects.append(self.real_dot)
         self.visualization_objects.append(self.kalman_dot)
         self.visualization_objects.append(self.measured_dot)
@@ -176,9 +176,9 @@ class KalmanFilterVisualizer(Visualizer):
         self.window.blit(measured_text, (10, 10))
         self.window.blit(kalman_text, (10, 50))
         self.window.blit(velocity_text, (10, 100))
-        self.window.blit(green_text, (945, 18))
-        self.window.blit(yellow_text, (945, 58))
-        self.window.blit(red_text, (945, 98))
+        self.window.blit(green_text, (670, 18))
+        self.window.blit(yellow_text, (670, 58))
+        self.window.blit(red_text, (670, 98))
 
     def redraw_window(self):
         self.draw()

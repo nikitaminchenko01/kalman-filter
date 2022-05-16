@@ -15,7 +15,7 @@
   </a>
   <h3 align="center">Kalman filter simulation and visualization</h3>
   <p align="center">
-    Kalman filter simulation and visualization. Implemented as part of a final project on the control systems course at WrUST.
+    Kalman filter simulation and visualization with variable timestep.
   </p>
 </p>
 
@@ -40,7 +40,7 @@ If you have pyenv, you can install this version using:
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/simonusher/kalman-filter.git
+   git clone https://github.com/nikitaminchenko01/kalman-filter.git
    ```
 2. Create a virtual environment and activate it (optional):
    ```sh
@@ -72,9 +72,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <!-- CONTACT -->
 ## Contact
-
-Szymon Woźniak - swozniak6@gmail.com
-
+Original author: Szymon Woźniak - swozniak6@gmail.com
+Me: Nikita Minchenko - nikitaminchenko01@gmail.com
 
 
 [contributors-shield]: https://img.shields.io/github/contributors/simonusher/kalman-filter.svg?style=for-the-badge
